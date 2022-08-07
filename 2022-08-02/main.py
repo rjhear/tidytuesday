@@ -14,9 +14,9 @@ def main(data_path: str) -> None:
 
     # WEEKDAY COMPARISONS
     comparison_vars: dict = {"Female": None, "HabType": None, "Water": None, "Type": None, "Detection": None}
-    comparison_mapping: dict = {var: compare_weekday(frame=df, to=var) for var in comparison_vars}
+    comparison_map: dict = {var: compare_weekday(frame=df, to=var) for var in comparison_vars}
 
-    for var, frame in comparison_mapping.items():
+    for var, frame in comparison_map.items():
         make_bar_plot(frame=frame, var=var)
 
 
@@ -24,8 +24,8 @@ def read_and_prep(url: str) -> pd.DataFrame:
     """"""
     frame: pd.DataFrame = pd.read_csv(filepath_or_buffer=url, low_memory=False, encoding="utf-8",
                                       parse_dates=["SurveyDate"])
-    frame["weekday"] = frame["SurveyDate"].dt.day_name()
-    frame["Female"] = frame["Female"].replace({0.0: "Male", 1.0: "Female"})
+    frame: pd.DataFrame = frame.assign(Female=frame["Female"].replace({0.0: "Male", 1.0: "Female"}),
+                                       weekday=frame["SurveyDate"].dt.day_name())
     return frame
 
 
@@ -35,10 +35,16 @@ def compare_weekday(frame: pd.DataFrame, to: str) -> pd.DataFrame:
 
 
 def make_bar_plot(frame: pd.DataFrame, var: str) -> None:
-    """"""
-    fig = px.bar(frame, x="weekday", y="count", color=var, barmode="group",
+    """Plot a side-by-side bar chart of `var` against `weekday` using Python Plotly API
+        https://plotly.com/python-api-reference/generated/plotly.express.bar.html
+    :param frame: Input data with `weekday`, `count`, and comparison var
+    :param var: Comparison var
+    :return: None
+    """
+    fig = px.bar(data_frame=frame, x="weekday", y="count", color=var, barmode="group",
                  title=f"Comparison of Weekday to {var.title()}",
-                 labels={"weekday": "Weekday", "count": f"Count of {var}"}, text_auto=True, color_discrete_sequence= px.colors.sequential.Plasma_r)
+                 labels={"weekday": "Weekday", "count": f"Count of {var}"}, text_auto=True,
+                 color_discrete_sequence=px.colors.sequential.Plasma_r)
     fig.show()
 
 
